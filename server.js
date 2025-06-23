@@ -3,56 +3,58 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-
-// Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
 const feedbackRoutes = require('./routes/feedbackRoutes');
 
-// ✅ Allow only your Vercel frontend
+// ✅ Allow frontend origin only (CORS whitelist)
 const allowedOrigins = ['https://feedback-reward.vercel.app'];
 
-// ✅ CORS middleware setup
+// ✅ CORS Middleware
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like Postman) or from allowedOrigins
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.log('❌ Blocked by CORS:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST', 'OPTIONS'],
-    credentials: false
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('❌ Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: false
 }));
 
-// ✅ Handle preflight requests (important for OPTIONS method)
+// ✅ Preflight requests
 app.options('*', cors());
 
-// ✅ JSON parser for incoming requests
+// ✅ JSON Parser
 app.use(express.json());
 
-// ✅ Debug middleware (optional, remove in production)
+// ✅ Debugging (Optional in dev)
 app.use((req, res, next) => {
-    console.log(`[${req.method}] ${req.originalUrl} from ${req.headers.origin}`);
-    next();
+  console.log(`[${req.method}] ${req.originalUrl} from ${req.headers.origin}`);
+  next();
 });
-
-// ✅ MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB error:', err));
 
 // ✅ Routes
-
 app.use('/api/feedback', feedbackRoutes);
 
-// ✅ Start server
+// ✅ Async MongoDB Connection + Start Server
+const startServer = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('✅ MongoDB connected');
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('❌ MongoDB connection failed:', err.message);
+    process.exit(1); // Stop server
+  }
+};
+
+startServer();
