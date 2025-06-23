@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ✅ Allow only your Vercel frontend
-const allowedOrigins = ['https://feedback-reward.vercel.app'];
+const allowedOrigins = ['https://feedback-reward.vercel.app/'];
 
 // ✅ CORS middleware setup
 app.use(cors({
