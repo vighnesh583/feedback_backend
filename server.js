@@ -7,9 +7,10 @@ require('dotenv').config();
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 5000;
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
 // ✅ Allow only your Vercel frontend
-const allowedOrigins = ['https://feedback-reward.vercel.app/'];
+const allowedOrigins = ['https://feedback-reward.vercel.app'];
 
 // ✅ CORS middleware setup
 app.use(cors({
@@ -47,7 +48,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.error('❌ MongoDB error:', err));
 
 // ✅ Routes
-const feedbackRoutes = require('./routes/feedbackRoutes');
+
 app.use('/api/feedback', feedbackRoutes);
 
 // ✅ Start server
