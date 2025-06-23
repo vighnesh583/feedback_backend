@@ -1,19 +1,19 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 
 // Initialize app
 const app = express();
 
-// Middleware
+// CORS middleware FIRST
 app.use(cors({
     origin: 'https://feedback-reward.vercel.app',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     credentials: false
 }));
 
-app.use(bodyParser.json());
+// Express JSON parser (no need body-parser)
+app.use(express.json());
 
 // Connect to MongoDB Atlas
 mongoose.connect('mongodb+srv://vighneshkhadake:gIrV2bVnCvBiy9SE@cluster0.ltxhibl.mongodb.net/feedback_db?retryWrites=true&w=majority&appName=Cluster0', {
@@ -22,6 +22,9 @@ mongoose.connect('mongodb+srv://vighneshkhadake:gIrV2bVnCvBiy9SE@cluster0.ltxhib
 })
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error(err));
+
+// Handle preflight requests (optional, but safe)
+app.options('*', cors());
 
 // Import routes
 const feedbackRoutes = require('./routes/feedbackRoutes');
