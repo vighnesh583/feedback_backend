@@ -3,12 +3,15 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const feedbackRoutes = require('./routes/feedbackRoutes');
+const authRoutes = require('./routes/authRoutes');
+
 
 // ✅ Allow frontend origin only (CORS whitelist)
-const allowedOrigins = ['https://feedback-reward.vercel.app'];
+const allowedOrigins = ['https://feedback-reward.vercel.app', 'http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080'];
 
 // ✅ CORS Middleware
 app.use(cors({
@@ -38,6 +41,7 @@ app.use((req, res, next) => {
 
 // ✅ Routes
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/auth', authRoutes);
 
 // ✅ Async MongoDB Connection + Start Server
 const startServer = async () => {
