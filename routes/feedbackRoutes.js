@@ -3,26 +3,44 @@ const router = express.Router();
 const Feedback = require('../models/feedback');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// POST - Create feedback
-router.post('/', authMiddleware, async (req, res) => {
+// ✅ POST - Allow public (no authMiddleware) to submit feedback
+router.post('/:userId', async (req, res) => {
     try {
+        const { userId } = req.params;
+        const { name, email, rating, message, discount, discountCode } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'Missing userId in feedback' });
+        }
+        if (!name || !email || !message || !discount) return res.status(400).json({ error: 'Missing required fields' });
+
         const newFeedback = new Feedback({
-            ...req.body,
-            userId: req.userId // ✅ Tie feedback to logged-in user
+            userId,
+            name,
+            email,
+            rating,
+            message,
+            discount,
+            discountCode,
+            createdAt: new Date(),
         });
+
         await newFeedback.save();
-        res.status(201).json(newFeedback);
+        res.status(201).json({ message: 'Feedback submitted successfully' });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        console.error('Feedback POST error:', err.message);
+        res.status(500).json({ error: err.message });
     }
 });
 
-// GET - Get all feedbacks
-router.get('/', authMiddleware, async (req, res) => {
+// ✅ GET - Admin fetching their own feedback (with token)
+router.get('/:userId', authMiddleware, async (req, res) => {
     try {
-        const feedbacks = await Feedback.find({ userId: req.userId }).sort({ date: -1 });
+        const userId = req.user.id; // Comes from token
+        const feedbacks = await Feedback.find({ userId }).sort({ createdAt: -1 });
         res.json(feedbacks);
     } catch (err) {
+        console.error('Feedback GET error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
